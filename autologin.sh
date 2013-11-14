@@ -22,47 +22,72 @@
 #
 #	Config:
 #	create a config file witch includes the username= and password= and realm= one per line.
+
+first_run()
+{
+        echo "Type Username"
+        read username
+        echo "Type Password"
+        read password
+        echo "Type realm"
+        read realm
+        
+        echo "username=$username" > $DIR/config
+        echo "password=$password" >> $DIR/config
+        echo "realm=$realm" >> $DIR/config
+}
+load_user_data()
+{
+	path=$DIR/config
+	username=`cat $path | grep username | cut -c 10-`
+	realm=`cat $path | grep realm | cut -c 7-`
+	password=`cat $path | grep password | cut -c 10-`
+}
+
+check_connection()
+{
+	wget  -q http://172.23.198.1:3990/prelogin
+	checkInternet=`cat prelogin | grep logoff`
+	if [ "$checkInternet" != "" ] ; then
+		echo Internet Works
+	else
+		echo Internet not Works
+	fi
+}
+
+logon()
+{
+	chal=`cat prelogin | grep chal | cut -c 51-82`
+	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip=172.23.198.1&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
+	wget -q $url
+
+	password=`cat test.php* | grep password | cut -c 120-151 | head -n 1`
+}
+
+logoff()
+{
+	wget -q http://172.23.198.1:3990/logoff
+}
+
 WIFINETWORK=STILABWIFI
-path=$1
-echo $path
-username=`cat $path | grep username | cut -c 10-`
-realm=`cat $path | grep realm | cut -c 7-`
-password=`cat $path | grep password | cut -c 10-`
+DIR=$PWD
 WORKDIR=/tmp/tmpload_$RANDOM
 mkdir $WORKDIR
-if [ $? -eq 0 ] ; then
-	cd $WORKDIR
-	essisteNetwork=`iwconfig 2> /dev/null | grep $WIFINETWORK`
-	if [ "$essisteNetwork" == "" ] ; then
-			echo "You are not conected to the right WIFI Network"
-			echo "It shut be $WIFINETWORK"
-		else		
-			echo "You are conected to the right WIFI Network ($WIFINETWORK)"
-			
-			wget -q http://172.23.198.1:3990/prelogin
-			checkInternet=`cat prelogin | grep logoff`
-			if [ "$checkInternet" != "" ] ; then
-				echo You are conneted
-				echo "Do you like to logout? (Typ Enter or CTR + C per terminare)"
-				read UserIput
-				wget -q http://172.23.198.1:3990/logoff
-			else		   
-				chal=`cat prelogin | grep chal | cut -c 51-82`
-				url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip=172.23.198.1&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
-				wget -q $url
-				password=`cat test.php* | grep password | cut -c 120-151 | head -n 1`
-				url="http://172.23.198.1:3990/logon?username="$username"@"$realm"&password="$password
-				wget -q $url
-				checkInternet=`ping -c 2 -w 10 fsf.org`
-				if [ $? -eq 0 ] ; then
-					echo "Login effettuato"
-				else
-					echo "Login non effettuato"
-				fi
-				rm -R $WORKDIR
-			fi
-	fi
-else
-	echo "Can't create tmp dir"
+cd $WORKDIR
+
+wget  -q http://172.23.198.1:3990/prelogin
+if [ "`ls $DIR/config 2> /dev/zero`" != "$DIR/config" ] ; then
+	first_run
 fi
+
+load_user_data
+echo $username
+echo $password
+logon
+check_connection
+
+#logoff
+#check_connection
+
+rm -R $WORKDIR
 exit 0
