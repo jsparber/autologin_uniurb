@@ -46,6 +46,7 @@ load_user_data()
 
 check_connection()
 {
+	rm prelogin
 	wget  -q http://172.23.198.1:3990/prelogin
 	checkInternet=`cat prelogin | grep logoff`
 	if [ "$checkInternet" != "" ] ; then
@@ -62,6 +63,8 @@ logon()
 	wget -q $url
 
 	password=`cat test.php* | grep password | cut -c 120-151 | head -n 1`
+	url="http://172.23.198.1:3990/logon?username="$username"@"$realm"&password="$password
+	wget -q $url
 }
 
 logoff()
@@ -81,8 +84,8 @@ if [ "`ls $DIR/config 2> /dev/zero`" != "$DIR/config" ] ; then
 fi
 
 load_user_data
-echo $username
-echo $password
+#echo $username
+#echo $password
 logon
 check_connection
 
