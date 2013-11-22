@@ -36,6 +36,11 @@ first_run()
         echo "password=$password" >> $DIR/config
         echo "realm=$realm" >> $DIR/config
 }
+get_gateway()
+{
+	GATEWAY=`ip addr show | grep "inet " | grep -v 127.0.0.1 | cut --delimiter=" " -f 6 | cut --delimiter=. -f 1-3`.1
+}
+
 load_user_data()
 {
 	path=$DIR/config
@@ -47,7 +52,7 @@ load_user_data()
 check_connection()
 {
 	rm prelogin
-	wget  -q http://172.23.198.1:3990/prelogin
+	wget  -q http://$GATEWAY:3990/prelogin
 	checkInternet=`cat prelogin | grep logoff`
 	if [ "$checkInternet" != "" ] ; then
 		echo Internet Works
@@ -58,34 +63,37 @@ check_connection()
 
 logon()
 {
+	echo Logon
 	chal=`cat prelogin | grep chal | cut -c 51-82`
-	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip=172.23.198.1&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
+	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip="$GATEWAY"&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
 	wget -q $url
 
 	password=`cat test.php* | grep password | cut -c 120-151 | head -n 1`
-	url="http://172.23.198.1:3990/logon?username="$username"@"$realm"&password="$password
+	url="http://"$GATEWAY":3990/logon?username="$username"@"$realm"&password="$password
 	wget -q $url
 }
 
 logoff()
 {
-	wget -q http://172.23.198.1:3990/logoff
+	wget -q http://$GATEWAY:3990/logoff
 }
 
 WIFINETWORK=STILABWIFI
-DIR=$PWD
+GATEWAY=172.23.198.1
+echo $0
+DIR=`echo $0 | rev | cut  --delimiter=/ -f 2- | rev`
+echo $DIR/config
 WORKDIR=/tmp/tmpload_$RANDOM
 mkdir $WORKDIR
-cd $WORKDIR
 
-wget  -q http://172.23.198.1:3990/prelogin
+get_gateway
 if [ "`ls $DIR/config 2> /dev/zero`" != "$DIR/config" ] ; then
 	first_run
 fi
 
 load_user_data
-#echo $username
-#echo $password
+cd $WORKDIR
+wget  -q http://$GATEWAY:3990/prelogin
 logon
 check_connection
 
