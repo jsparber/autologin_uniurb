@@ -43,6 +43,10 @@ get_gateway()
 
 load_user_data()
 {
+	# Verify if there is a config file, if not create that
+	if [ "`ls $DIR/config 2> /dev/zero`" != "$DIR/config" ] ; then
+		first_run
+	fi
 	path=$DIR/config
 	username=`cat $path | grep username | cut -c 10-`
 	realm=`cat $path | grep realm | cut -c 7-`
@@ -51,6 +55,7 @@ load_user_data()
 
 check_connection()
 {
+	echo Check connection ...
 	rm prelogin
 	wget  -q http://$GATEWAY:3990/prelogin
 	checkInternet=`cat prelogin | grep logoff`
@@ -63,7 +68,9 @@ check_connection()
 
 logon()
 {
-	echo Logon
+	echo Doing login ... 
+	#Download Lgoin website
+	wget  -q http://$GATEWAY:3990/prelogin
 	chal=`cat prelogin | grep chal | cut -c 51-82`
 	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip="$GATEWAY"&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
 	wget -q $url
@@ -71,29 +78,29 @@ logon()
 	password=`cat test.php* | grep password | cut -c 120-151 | head -n 1`
 	url="http://"$GATEWAY":3990/logon?username="$username"@"$realm"&password="$password
 	wget -q $url
+	echo Done
 }
 
 logoff()
 {
+	echo Doing logoff ...
 	wget -q http://$GATEWAY:3990/logoff
+	echo Done
 }
-
+# Set Default Settings
 WIFINETWORK=STILABWIFI
 GATEWAY=172.23.198.1
-echo $0
+# Get dir of File
 DIR=`echo $0 | rev | cut  --delimiter=/ -f 2- | rev`
-echo $DIR/config
+# Create a tmp workdir will be delied after login
 WORKDIR=/tmp/tmpload_$RANDOM
 mkdir $WORKDIR
 
 get_gateway
-if [ "`ls $DIR/config 2> /dev/zero`" != "$DIR/config" ] ; then
-	first_run
-fi
-
 load_user_data
+
+#Start Connecting process
 cd $WORKDIR
-wget  -q http://$GATEWAY:3990/prelogin
 logon
 check_connection
 
