@@ -80,12 +80,20 @@ logon()
 	wget -q $url
 	echo Done
 }
+logon_uwic()
+{
+	curl --data "v=pda&username=$username&password=$password&rad=%40$realm&expire=999" https://gateway.wireless-campus.it/logincheck.php
+}
 
 logoff()
 {
 	echo Doing logoff ...
 	wget -q http://$GATEWAY:3990/logoff
 	echo Done
+}
+get_ap()
+{
+	WIFINETWORK=`iwconfig 2> /dev/zero | cut -f 2 -d '"' | head -1`
 }
 # Set Default Settings
 WIFINETWORK=STILABWIFI
@@ -97,13 +105,17 @@ WORKDIR=/tmp/tmpload_$RANDOM
 mkdir $WORKDIR
 
 get_gateway
+get_ap
 load_user_data
-
+if [ "$WIFINETWORK" == "UWiC" ] ; then
+	echo UWiC
+	logon_uwic
+else
 #Start Connecting process
 cd $WORKDIR
 logon
 check_connection
-
+fi
 #logoff
 #check_connection
 
