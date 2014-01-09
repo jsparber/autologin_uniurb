@@ -75,7 +75,12 @@ logon()
 	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip="$GATEWAY"&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
 	wget -q $url
 
-	password=`cat test.php* | grep password | cut -c 120-151 | head -n 1`
+	password=`cat test.php* | grep password`
+        # calculate start and end of hashed password
+	end=`expr $(echo $password | wc -m) - 3`
+	start=`expr $end - 31`
+        # extract the password
+	password=`echo $password | cut -c $start-$end`
 	url="http://"$GATEWAY":3990/logon?username="$username"@"$realm"&password="$password
 	wget -q $url
 	echo Done
