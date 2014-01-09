@@ -84,7 +84,10 @@ logon_uwic()
 {
 	curl --data "v=pda&username=$username&password=$password&rad=%40$realm&expire=999" https://gateway.wireless-campus.it/logincheck.php
 }
-
+logon_sad()
+{
+	curl --data "user=$username&auth_pass=$password&Realm=$realm&auth_user=&redirurl=%2Findex.php&accept=GO" https://sadwifi-res.uniurb.it:8001
+}
 logoff()
 {
 	echo Doing logoff ...
@@ -111,10 +114,16 @@ if [ "$WIFINETWORK" == "UWiC" ] ; then
 	echo UWiC
 	logon_uwic
 else
-#Start Connecting process
-cd $WORKDIR
-logon
-check_connection
+	if [ "$WIFINETWORK" == "SAD-UNIURB" ] ; then
+		echo $WIFINETWORK
+		logon_sad
+	else
+
+		#Start Connecting process
+		cd $WORKDIR
+		logon
+		check_connection
+	fi
 fi
 #logoff
 #check_connection
