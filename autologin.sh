@@ -91,6 +91,7 @@ logon_uwic()
 }
 logon_sad()
 {
+	echo connection to Sad Wifi
 	curl --data "user=$username&auth_pass=$password&Realm=$realm&auth_user=&redirurl=%2Findex.php&accept=GO" https://sadwifi-res.uniurb.it:8001
 }
 logoff()
@@ -101,7 +102,10 @@ logoff()
 }
 get_ap()
 {
-	WIFINETWORK=`iwconfig 2> /dev/zero | cut -f 2 -d '"' | head -1`
+	if [ "`iwconfig 2> /dev/zero | grep Not-Associated`" == "" ] ; then
+		WIFINETWORK=`iwconfig 2> /dev/zero | cut -f 2 -d '"' | head -1`
+	fi
+	echo Wifinetwork = $WIFINETWORK
 }
 # Set Default Settings
 WIFINETWORK=STILABWIFI
@@ -111,21 +115,20 @@ DIR=`echo $0 | rev | cut  --delimiter=/ -f 2- | rev`
 # Create a tmp workdir will be delied after login
 WORKDIR=/tmp/tmpload_$RANDOM
 mkdir $WORKDIR
-
 get_gateway
 get_ap
 load_user_data
 if [ "$WIFINETWORK" == "UWiC" ] ; then
-	echo UWiC
+	echo connect to UWiC
 	logon_uwic
 else
 	if [ "$WIFINETWORK" == "SAD-UNIURB" ] ; then
-		echo $WIFINETWORK
+		echo connect to SAD-UNIURB
 		logon_sad
 	else
 
-		#Start Connecting process
 		cd $WORKDIR
+		#Start Connecting process
 		logon
 		check_connection
 	fi
