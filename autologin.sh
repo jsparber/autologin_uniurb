@@ -38,7 +38,7 @@ first_run()
 }
 get_gateway()
 {
-	GATEWAY=`ip addr show | grep "inet " | grep -v 127.0.0.1 | cut --delimiter=" " -f 6 | cut --delimiter=. -f 1-3`.1
+	GATEWAY=`ip addr show | grep "inet " | grep -v 127.0.0.1 | head -n 1 | cut --delimiter=" " -f 6 | cut --delimiter=. -f 1-3`.1
 }
 
 load_user_data()
@@ -72,6 +72,7 @@ logon()
 	#Download Lgoin website
 	wget  -q http://$GATEWAY:3990/prelogin
 	chal=`cat prelogin | grep chal | cut -c 51-82`
+  echo $GATEWAY
 	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip="$GATEWAY"&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
 	wget -q $url
 
