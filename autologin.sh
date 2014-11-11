@@ -93,7 +93,8 @@ logon_uwic()
 logon_sad()
 {
 	echo connection to Sad Wifi
-	curl --data "user=$username&auth_pass=$password&Realm=$realm&auth_user=&redirurl=%2Findex.php&accept=GO" https://sadwifi-res.uniurb.it:8001
+  curl 'https://sadwifi.uniurb.it:8001/' -H 'Host: sadwifi.uniurb.it:8001' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' -H 'Accept-Language: en,it;q=0.8,de;q=0.5,en-us;q=0.3' -H 'Accept-Encoding: gzip, deflate' -H 'DNT: 1' -H 'Referer: https://sadwifi.uniurb.it:8001/' -H 'Connection: keep-alive' --data "user=$username&auth_pass=$password&Realm=$realm&auth_user=$username%40$realm&redirurl=%2F&accept=GO'
+
 }
 logoff()
 {
