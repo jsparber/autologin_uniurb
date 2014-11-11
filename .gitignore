@@ -18,3 +18,4 @@
 *.app
 config
 .autoconfig.sh.*
+*.swp
