@@ -23,19 +23,6 @@
 #	Config:
 #	create a config file witch includes the username= and password= and realm= one per line.
 
-first_run()
-{
-        echo "Type Username"
-        read username
-        echo "Type Password"
-        read password
-        echo "Type realm"
-        read realm
-        
-        echo "username=$username" > $DIR/config
-        echo "password=$password" >> $DIR/config
-        echo "realm=$realm" >> $DIR/config
-}
 get_gateway()
 {
 	GATEWAY=`ip addr show | grep "inet " | grep -v 127.0.0.1 | head -n 1 | cut --delimiter=" " -f 6 | cut --delimiter=. -f 1-3`.1
@@ -43,14 +30,11 @@ get_gateway()
 
 load_user_data()
 {
-	# Verify if there is a config file, if not create that
-	if [ "`ls $DIR/config 2> /dev/zero`" != "$DIR/config" ] ; then
-		first_run
-	fi
-	path=$DIR/config
-	username=`cat $path | grep username | cut -c 10-`
-	realm=`cat $path | grep realm | cut -c 7-`
-	password=`cat $path | grep password | cut -c 10-`
+  data=`zenity --forms --add-entry=name@realm:  --add-password=password: --separator=" " --title=Login --text="Enter your Login"`
+  data=(${data//@/ })
+	username=${data[0]}
+	realm=${data[1]}
+	password=${data[2]}
 }
 
 check_connection()
