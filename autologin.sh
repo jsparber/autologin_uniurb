@@ -129,7 +129,7 @@ else
 		logon_sad
 	else
 
-		#cd $WORKDIR
+		cd $WORKDIR
 		#Start Connecting process
 		logon
 		#check_connection
