@@ -57,7 +57,7 @@ check_connection()
 {
 	echo Check connection ...
 	rm prelogin
-	wget  -q http://$GATEWAY:3990/prelogin
+	curl -L -s http://$GATEWAY:3990/prelogin > prelogin
 	checkInternet=`cat prelogin | grep logoff`
 	if [ "$checkInternet" != "" ] ; then
 		echo Internet Works
@@ -70,20 +70,20 @@ logon()
 {
 	echo Doing login ... 
 	#Download Lgoin website
-	wget  -q http://$GATEWAY:3990/prelogin
-	chal=`cat prelogin | grep chal | cut -c 51-82`
+	curl -L -s http://$GATEWAY:3990/prelogin > prelogin
+	chal=`cat prelogin | grep chal -a | cut -c 51-82`
   echo $GATEWAY
-	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip="$GATEWAY"&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
-	wget -q $url
 
-	password=`cat test.php* | grep password`
+	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip="$GATEWAY"&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
+	curl -L -s $url > test.php
+	password=`cat test.php* | grep -a password`
         # calculate start and end of hashed password
 	end=`expr $(echo $password | wc -m) - 3`
 	start=`expr $end - 31`
         # extract the password
 	password=`echo $password | cut -c $start-$end`
 	url="http://"$GATEWAY":3990/logon?username="$username"@"$realm"&password="$password
-	wget -q $url
+	curl -L -s $url > login
 	echo Done
 }
 logon_uwic()
@@ -99,7 +99,7 @@ logon_sad()
 logoff()
 {
 	echo Doing logoff ...
-	wget -q http://$GATEWAY:3990/logoff
+	curl -L http://$GATEWAY:3990/logoff
 	echo Done
 }
 get_ap()
@@ -129,10 +129,10 @@ else
 		logon_sad
 	else
 
-		cd $WORKDIR
+		#cd $WORKDIR
 		#Start Connecting process
 		logon
-		check_connection
+		#check_connection
 	fi
 fi
 #logoff
