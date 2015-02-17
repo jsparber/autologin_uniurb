@@ -70,20 +70,18 @@ logon()
 {
 	echo Doing login ... 
 	#Download Lgoin website
-	curl -L -s http://$GATEWAY:3990/prelogin > prelogin
-	chal=`cat prelogin | grep chal -a | cut -c 51-82`
+	chal=`curl -L -s http://$GATEWAY:3990/prelogin | grep chal -a | cut -c 51-82`
   echo $GATEWAY
 
 	url="https://radius.uniurb.it/URB/test.php?chal="$chal"&uamip="$GATEWAY"&uamport=3990&userurl=&UserName="$username"&Realm="$realm"&Password="$password"&form_id=69889&login=login"
-	curl -L -s $url > test.php
-	password=`cat test.php* | grep -a password`
+	password=`curl -L -s $url | grep -a password`
         # calculate start and end of hashed password
 	end=`expr $(echo $password | wc -m) - 3`
 	start=`expr $end - 31`
         # extract the password
 	password=`echo $password | cut -c $start-$end`
 	url="http://"$GATEWAY":3990/logon?username="$username"@"$realm"&password="$password
-	curl -L -s $url > login
+	res=`curl -L -s $url`
 	echo Done
 }
 logon_uwic()
@@ -116,9 +114,6 @@ GATEWAY=172.23.198.1
 DIR=`dirname $0`
 echo $DIR
 # Create a tmp workdir will be delied after login
-startdir=$PWD
-WORKDIR=/tmp/tmpload_$RANDOM
-mkdir $WORKDIR
 get_gateway
 get_ap
 load_user_data
@@ -130,8 +125,6 @@ else
 		echo connect to SAD-UNIURB
 		logon_sad
 	else
-
-		cd $WORKDIR
 		#Start Connecting process
 		logon
 		#check_connection
@@ -140,10 +133,8 @@ fi
 #logoff
 #check_connection
 
-rm -R $WORKDIR
 date
 echo wait 40 min and relogin
-cd $startdir
 sleep 2400
 date
 exec $DIR/autologin.sh
