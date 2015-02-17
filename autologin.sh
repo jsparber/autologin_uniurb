@@ -113,8 +113,10 @@ get_ap()
 WIFINETWORK=STILABWIFI
 GATEWAY=172.23.198.1
 # Get dir of File
-DIR=`echo $0 | rev | cut  --delimiter=/ -f 2- | rev`
+DIR=`dirname $0`
+echo $DIR
 # Create a tmp workdir will be delied after login
+startdir=$PWD
 WORKDIR=/tmp/tmpload_$RANDOM
 mkdir $WORKDIR
 get_gateway
@@ -139,4 +141,10 @@ fi
 #check_connection
 
 rm -R $WORKDIR
+date
+echo wait 40 min and relogin
+cd $startdir
+sleep 2400
+date
+exec $DIR/autologin.sh
 exit 0
